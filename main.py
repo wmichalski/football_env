@@ -4,6 +4,7 @@ import random
 from player import Player
 from ball import Ball
 import math
+import numpy as np
 
 pygame.init()
 
@@ -31,16 +32,22 @@ def distance_between_two_points(x1, y1, x2, y2):
 
 def draw_player(player):
     pygame.draw.circle(gameDisplay, black, (int(player.x), int(player.y)), player.kick_radius, 1) 
-    pygame.draw.circle(gameDisplay, black, (int(player.x), int(player.y)), player.radius)
+    pygame.draw.circle(gameDisplay, black, (int(player.x), int(player.y)), player.radius+1)
     pygame.draw.circle(gameDisplay, white, (int(player.x), int(player.y)), int(player.radius*0.75))
 
 def draw_ball(player):
-    pygame.draw.circle(gameDisplay, black, (int(ball.x), int(ball.y)), ball.radius)
+    pygame.draw.circle(gameDisplay, black, (int(ball.x), int(ball.y)), ball.radius+1)
     pygame.draw.circle(gameDisplay, white, (int(ball.x), int(ball.y)), ball.radius-2)
 
 def draw_map():
-    # top
+    # left
     pygame.draw.line(gameDisplay, black, (display_width/2 - map_width/2, display_height/2 - map_height/2), (display_width/2 - map_width/2, display_height/2 + map_height/2), 1)
+    # right
+    pygame.draw.line(gameDisplay, black, (display_width/2 + map_width/2, display_height/2 - map_height/2), (display_width/2 + map_width/2, display_height/2 + map_height/2), 1)
+    # top
+    pygame.draw.line(gameDisplay, black, (display_width/2 - map_width/2, display_height/2 - map_height/2), (display_width/2 + map_width/2, display_height/2 - map_height/2), 1)
+    # bottom 
+    pygame.draw.line(gameDisplay, black, (display_width/2 - map_width/2, display_height/2 + map_height/2), (display_width/2 + map_width/2, display_height/2 + map_height/2), 1)
 
 def kick(player, ball):
     dist = distance_between_two_points(player.x, player.y, ball.x, ball.y)
@@ -49,22 +56,71 @@ def kick(player, ball):
         ball.x_velocity -= vector[0]/dist * 25
         ball.y_velocity -= vector[1]/dist * 25
 
+# https://stackoverflow.com/questions/2827393/angles-between-two-n-dimensional-vectors-in-python
+def unit_vector(vector):
+    """ Returns the unit vector of the vector.  """
+    return vector / np.linalg.norm(vector)
+
+# https://stackoverflow.com/questions/2827393/angles-between-two-n-dimensional-vectors-in-python
+def angle_between(v1, v2):
+    """ Returns the angle in radians between vectors 'v1' and 'v2'::
+
+            >>> angle_between((1, 0, 0), (0, 1, 0))
+            1.5707963267948966
+            >>> angle_between((1, 0, 0), (1, 0, 0))
+            0.0
+            >>> angle_between((1, 0, 0), (-1, 0, 0))
+            3.141592653589793
+    """
+    v1_u = unit_vector(v1)
+    v2_u = unit_vector(v2)
+    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
 def check_collisions(player, ball):
     dist = distance_between_two_points(player.x, player.y, ball.x, ball.y)
-    if dist <= player.radius + ball.radius:
-        # TODO odbicie piłki od gracza, gdy gracz jest jakby ścianą
-        # jeśli piłkowy wektor prędkości jest w stronę gracza, to odbijamy wektor (bo piłka inicjuje uderzenie)
-        # w przeciwnym razie to gracz uderza w pilke
-        ball.x_velocity
-        ball.x_velocity += player.x_velocity*0.9
-        ball.y_velocity += player.y_velocity*0.9
+    if dist < player.radius + ball.radius:
+
+        # https://stackoverflow.com/questions/21030391/how-to-normalize-an-array-in-numpy
+        ray = np.array([ball.x_velocity, ball.y_velocity])
+        v = np.array([player.x - ball.x, player.y - ball.y])
+        nrm = v / np.sqrt(np.sum(v**2))
+
+        # fix position once the ball is "inside the player"
+        # TODO it is based now on the position of balls. what if the ball is so fast that it appears in the other half of the player?
+        ball.x = player.x-v[0]*(player.radius+ball.radius)/dist
+        ball.y = player.y-v[1]*(player.radius+ball.radius)/dist
+
+        if not(ball.x_velocity == 0 and ball.y_velocity == 0):
+            if angle_between(ray, nrm) < 1.57: #pilka do gracza
+                reflection = ray - (2 * (np.dot(ray,nrm))* nrm)
+                ball.x_velocity = reflection[0]
+                ball.y_velocity = reflection[1]
+
+        ball.x_velocity += player.x_velocity*0.6
+        ball.y_velocity += player.y_velocity*0.6
         player.x_velocity *= 0.9
         player.y_velocity *= 0.9
 
 def check_borders(ball):
+    # left border
     if ball.x <= display_width/2 - map_width/2 + ball.radius:
         ball.x = display_width/2 - map_width/2 + ball.radius
         ball.x_velocity *= -1
+
+    # right border
+    if ball.x >= display_width/2 + map_width/2 - ball.radius:
+        ball.x = display_width/2 + map_width/2 - ball.radius
+        ball.x_velocity *= -1
+
+    # bottom border
+    if ball.y >= display_height/2 + map_height/2 - ball.radius:
+        ball.y = display_height/2 + map_height/2 - ball.radius
+        ball.y_velocity *= -1
+
+    # top border
+    if ball.y <= display_height/2 - map_height/2 + ball.radius:
+        ball.y = display_height/2 - map_height/2 + ball.radius
+        ball.y_velocity *= -1
         
 def game_loop():
     gameExit = False
@@ -110,6 +166,7 @@ def game_loop():
         draw_ball(ball)
 
         pygame.display.update()
+        print(ball.x_velocity, ball.y_velocity)
         clock.tick(60)
 
 
