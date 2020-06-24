@@ -15,8 +15,8 @@ class Ball:
         # sometimes ball gets too fast for some reason
         speed = math.sqrt(self.x_velocity**2 + self.y_velocity**2)
         if speed > 40:
-            self.x_velocity * 40/speed
-            self.y_velocity = 40/speed
+            self.x_velocity *= 40/speed
+            self.y_velocity *= 40/speed
         # avoiding a 0 in velocity vector to simplify math
         if self.x_velocity == 0:
             self.x_velocity = 0.001
