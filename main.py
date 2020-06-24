@@ -77,6 +77,8 @@ def angle_between(v1, v2):
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
 def is_ball_close_to_walls():
+    #TODO not just walls but all collisions in general, especially other players
+
     if ball.x <= display_width/2 - map_width/2 + 2*ball.radius:
         return True
 
