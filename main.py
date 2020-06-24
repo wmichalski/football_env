@@ -53,8 +53,8 @@ def kick(player, ball):
     dist = distance_between_two_points(player.x, player.y, ball.x, ball.y)
     if dist <= player.kick_radius + ball.radius:
         vector = (player.x - ball.x, player.y - ball.y)
-        ball.x_velocity -= vector[0]/dist * 25
-        ball.y_velocity -= vector[1]/dist * 25
+        ball.x_velocity -= vector[0]/dist * 20
+        ball.y_velocity -= vector[1]/dist * 20
 
 # https://stackoverflow.com/questions/2827393/angles-between-two-n-dimensional-vectors-in-python
 def unit_vector(vector):
@@ -76,6 +76,21 @@ def angle_between(v1, v2):
     v2_u = unit_vector(v2)
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
+def is_ball_close_to_walls():
+    if ball.x <= display_width/2 - map_width/2 + 2*ball.radius:
+        return True
+
+    if ball.x >= display_width/2 + map_width/2 - 2*ball.radius:
+        return True
+
+    if ball.y >= display_height/2 + map_height/2 - 2*ball.radius:
+        return True
+
+    if ball.y <= display_height/2 - map_height/2 + 2*ball.radius:
+        return True
+
+    return False
+
 def check_collisions(player, ball):
     dist = distance_between_two_points(player.x, player.y, ball.x, ball.y)
     if dist < player.radius + ball.radius:
@@ -87,8 +102,19 @@ def check_collisions(player, ball):
 
         # fix position once the ball is "inside the player"
         # TODO it is based now on the position of balls. what if the ball is so fast that it appears in the other half of the player?
-        ball.x = player.x-v[0]*(player.radius+ball.radius)/dist
-        ball.y = player.y-v[1]*(player.radius+ball.radius)/dist
+
+        if is_ball_close_to_walls():
+            middle_x = (ball.x + player.x)/2
+            middle_y = (ball.y + player.y)/2
+
+            ball.x = middle_x-0.5*v[0]*(player.radius+ball.radius)/dist
+            ball.y = middle_y-0.5*v[1]*(player.radius+ball.radius)/dist
+
+            player.x = middle_x+0.5*v[0]*(player.radius+ball.radius)/dist
+            player.y = middle_y+0.5*v[1]*(player.radius+ball.radius)/dist
+        else:
+            ball.x = player.x-v[0]*(player.radius+ball.radius)/dist
+            ball.y = player.y-v[1]*(player.radius+ball.radius)/dist
 
         if not(ball.x_velocity == 0 and ball.y_velocity == 0):
             if angle_between(ray, nrm) < 1.57: #pilka do gracza
