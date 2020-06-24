@@ -8,6 +8,14 @@ class Ball:
         # avoiding a 0 in velocity vector to simplify math
         self.x_velocity = 0.001
         self.y_velocity = 0.001
+        self.in_goal = False
+
+    def reset(self, x, y):
+        self.x = x
+        self.y = y
+        self.x_velocity = 0.001
+        self.y_velocity = 0.001
+        self.in_goal = False
 
     def update_velocity(self):
         self.x_velocity = self.x_velocity*0.96
