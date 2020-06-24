@@ -10,8 +10,8 @@ class Ball:
         self.y_velocity = 0.001
 
     def update_velocity(self):
-        self.x_velocity = self.x_velocity*0.95
-        self.y_velocity = self.y_velocity*0.95
+        self.x_velocity = self.x_velocity*0.96
+        self.y_velocity = self.y_velocity*0.96
         # sometimes ball gets too fast for some reason
         speed = math.sqrt(self.x_velocity**2 + self.y_velocity**2)
         if speed > 40:
