@@ -155,8 +155,8 @@ def check_collisions(player, ball):
 
         # TODO some stickyness parameter?
         # we want the balls' velocity to be decided not only by player's velocty, but also by theirs position
-        ball.x_velocity += (player.x_velocity*3-nrm[0])*0.6*0.25
-        ball.y_velocity += (player.y_velocity*3-nrm[1])*0.6*0.25
+        ball.x_velocity += (player.x_velocity*7-nrm[0])*0.6*0.125
+        ball.y_velocity += (player.y_velocity*7-nrm[1])*0.6*0.125
         player.x_velocity *= 0.9
         player.y_velocity *= 0.9
 
