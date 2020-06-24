@@ -129,6 +129,7 @@ def check_collisions(player, ball):
         # fix position once the ball is "inside the player"
         # TODO it is based now on the position of balls. what if the ball is so fast that it appears in the other half of the player?
 
+        # if the ball is close to the walls, it cannot move further - so we take a different approach then, so that the player cannot move onto ball
         if is_ball_close_to_walls():
             middle_x = (ball.x + player.x)/2
             middle_y = (ball.y + player.y)/2
@@ -142,14 +143,20 @@ def check_collisions(player, ball):
             ball.x = player.x-v[0]*(player.radius+ball.radius)/dist
             ball.y = player.y-v[1]*(player.radius+ball.radius)/dist
 
+        # if the ball hits the player, then it should bounce
         if not(ball.x_velocity == 0 and ball.y_velocity == 0):
-            if angle_between(ray, nrm) < 1.57:  # pilka do gracza
+            if angle_between(ray, nrm) < 1.57:  
                 reflection = ray - (2 * (np.dot(ray, nrm)) * nrm)
                 ball.x_velocity = reflection[0]
                 ball.y_velocity = reflection[1]
 
-        ball.x_velocity += player.x_velocity*0.6
-        ball.y_velocity += player.y_velocity*0.6
+        player_velocity = np.sqrt(player.x_velocity**2 + player.y_velocity**2)
+        nrm *= player_velocity
+
+        # TODO some stickyness parameter?
+        # we want the balls' velocity to be decided not only by player's velocty, but also by theirs position
+        ball.x_velocity += (player.x_velocity*3-nrm[0])*0.6*0.25
+        ball.y_velocity += (player.y_velocity*3-nrm[1])*0.6*0.25
         player.x_velocity *= 0.9
         player.y_velocity *= 0.9
 
