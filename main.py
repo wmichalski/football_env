@@ -19,10 +19,11 @@ green = (119, 221, 119)
 gameDisplay = pygame.display.set_mode((display_width, display_height))
 clock = pygame.time.Clock()
 
-fps = 240
+fps = 60
+gamespeed = 1
 
-player = Player(int(display_width*0.75), int(display_height*0.5), 20)
-ball = Ball(int(display_width*0.5), int(display_height*0.5), 12, fps)
+player = Player(int(display_width*0.75), int(display_height*0.5), 20, fps, gamespeed)
+ball = Ball(int(display_width*0.5), int(display_height*0.5), 12, fps, gamespeed)
 
 map_height = 600
 map_width = 1000
@@ -226,24 +227,24 @@ def game_loop():
             y_change = 0
 
             if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-                x_change += -0.7 * 60 / fps
+                x_change += -0.7 * 60 / fps* gamespeed
             if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-                x_change += 0.7 * 60 / fps
+                x_change += 0.7 * 60 / fps * gamespeed
             if keys[pygame.K_UP] or keys[pygame.K_w]:
-                y_change += -0.7 * 60 / fps
+                y_change += -0.7 * 60 / fps * gamespeed
             if keys[pygame.K_DOWN] or keys[pygame.K_s]:
-                y_change += 0.7 * 60 / fps
+                y_change += 0.7 * 60 / fps * gamespeed
             if keys[pygame.K_SPACE]:
                 kick(player, ball)
 
         player.x_velocity += x_change
         player.y_velocity += y_change
 
-        player.apply_velocity()
         player.update_velocity()
+        player.apply_velocity()
 
-        ball.apply_velocity()
         ball.update_velocity()
+        ball.apply_velocity()
 
         check_collisions(player, ball)
         check_borders_ball(ball)
