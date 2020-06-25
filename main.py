@@ -8,8 +8,8 @@ import numpy as np
 
 pygame.init()
 
-display_width = 1280
-display_height = 720
+display_width = 250 # 1280
+display_height = 200 # 720
 
 black = (0, 0, 0)
 white = (255, 255, 255)
@@ -19,16 +19,16 @@ green = (119, 221, 119)
 gameDisplay = pygame.display.set_mode((display_width, display_height))
 clock = pygame.time.Clock()
 
-fps = 60
-gamespeed = 1
+fps = 240
+gamespeed = 10
 
 player = Player(int(display_width*0.75), int(display_height*0.5), 20, fps, gamespeed)
 ball = Ball(int(display_width*0.5), int(display_height*0.5), 12, fps, gamespeed)
 
-map_height = 600
-map_width = 1000
+map_height = 150 # 600
+map_width = 200 # 1000
 
-goal_height = 200
+goal_height = 75 # 200
 
 def distance_between_two_points(x1, y1, x2, y2):
     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
@@ -208,6 +208,30 @@ def check_borders_player(player):
         player.y = 0
         player.y_velocity = 0
 
+def get_random_move():
+    x_change = 0
+    y_change = 0
+    kick = 0
+
+    if random.randint(0,1) == 0:
+        # move sideways
+        if random.randint(0,1) == 0:
+            x_change += -0.7 * 60 / fps* gamespeed
+        else:
+            x_change -= -0.7 * 60 / fps* gamespeed
+
+    if random.randint(0,1) == 0:
+        # move up/down
+        if random.randint(0,1) == 0:
+            y_change += -0.7 * 60 / fps* gamespeed
+        else:
+            y_change -= -0.7 * 60 / fps* gamespeed
+
+    if random.randint(0,2) == 0:
+        kick = 1
+
+    return x_change, y_change, kick
+
 
 def game_loop():
     gameExit = False
@@ -236,6 +260,11 @@ def game_loop():
                 y_change += 0.7 * 60 / fps * gamespeed
             if keys[pygame.K_SPACE]:
                 kick(player, ball)
+
+        x_change, y_change, isKick = get_random_move()
+
+        if(isKick):
+            kick(player, ball)
 
         player.x_velocity += x_change
         player.y_velocity += y_change
