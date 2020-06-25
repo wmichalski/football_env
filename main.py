@@ -161,7 +161,7 @@ def check_collisions(player, ball):
         player.y_velocity *= 0.9
 
 
-def check_borders(ball):
+def check_borders_ball(ball):
     # left border
     if ball.x <= display_width/2 - map_width/2 + ball.radius:
         if ball.y > display_height/2 - goal_height/2 and ball.y < display_height/2 + goal_height/2:
@@ -186,6 +186,27 @@ def check_borders(ball):
     if ball.y <= display_height/2 - map_height/2 + ball.radius:
         ball.y = display_height/2 - map_height/2 + ball.radius
         ball.y_velocity *= -1
+
+def check_borders_player(player):
+    # left border
+    if player.x <= 0:
+        player.x = 0
+        player.x_velocity = 0
+
+    # right border
+    if player.x >= display_width:
+        player.x = display_width
+        player.x_velocity = 0
+
+    # bottom border
+    if player.y >= display_height:
+        player.y = display_height
+        player.y_velocity = 0
+
+    # top border
+    if player.y <= 0:
+        player.y = 0
+        player.y_velocity = 0
 
 
 def game_loop():
@@ -226,7 +247,8 @@ def game_loop():
         ball.update_velocity()
 
         check_collisions(player, ball)
-        check_borders(ball)
+        check_borders_ball(ball)
+        check_borders_player(player)
 
         gameDisplay.fill(green)
         draw_map()
