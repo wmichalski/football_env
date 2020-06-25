@@ -1,7 +1,7 @@
 import math
 
 class Ball:
-    def __init__(self, x, y, radius):
+    def __init__(self, x, y, radius, fps):
         self.x = x
         self.y = y
         self.radius = radius
@@ -9,6 +9,7 @@ class Ball:
         self.x_velocity = 0.001
         self.y_velocity = 0.001
         self.in_goal = False
+        self.fps = fps
 
     def reset(self, x, y):
         self.x = x
@@ -18,8 +19,10 @@ class Ball:
         self.in_goal = False
 
     def update_velocity(self):
-        self.x_velocity = self.x_velocity*0.96
-        self.y_velocity = self.y_velocity*0.96
+        slow_param = (0.96)**(60/self.fps)
+
+        self.x_velocity = self.x_velocity*slow_param
+        self.y_velocity = self.y_velocity*slow_param
         # sometimes ball gets too fast for some reason
         speed = math.sqrt(self.x_velocity**2 + self.y_velocity**2)
         if speed > 40:
@@ -32,5 +35,5 @@ class Ball:
             self.y_velocity = 0.001
 
     def apply_velocity(self):
-        self.x += self.x_velocity
-        self.y += self.y_velocity
+        self.x += self.x_velocity * 60 / self.fps
+        self.y += self.y_velocity * 60 / self.fps

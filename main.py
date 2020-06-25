@@ -16,19 +16,18 @@ white = (255, 255, 255)
 red = (255, 0, 0)
 green = (119, 221, 119)
 
-car_width = 73
-
 gameDisplay = pygame.display.set_mode((display_width, display_height))
 clock = pygame.time.Clock()
 
+fps = 240
+
 player = Player(int(display_width*0.75), int(display_height*0.5), 20)
-ball = Ball(int(display_width*0.5), int(display_height*0.5), 12)
+ball = Ball(int(display_width*0.5), int(display_height*0.5), 12, fps)
 
 map_height = 600
 map_width = 1000
 
 goal_height = 200
-
 
 def distance_between_two_points(x1, y1, x2, y2):
     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
@@ -227,13 +226,13 @@ def game_loop():
             y_change = 0
 
             if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-                x_change += -0.7
+                x_change += -0.7 * 60 / fps
             if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-                x_change += 0.7
+                x_change += 0.7 * 60 / fps
             if keys[pygame.K_UP] or keys[pygame.K_w]:
-                y_change += -0.7
+                y_change += -0.7 * 60 / fps
             if keys[pygame.K_DOWN] or keys[pygame.K_s]:
-                y_change += 0.7
+                y_change += 0.7 * 60 / fps
             if keys[pygame.K_SPACE]:
                 kick(player, ball)
 
@@ -257,7 +256,7 @@ def game_loop():
 
         pygame.display.update()
         print(ball.x_velocity, ball.y_velocity)
-        clock.tick(60)
+        clock.tick(fps)
 
 
 game_loop()
