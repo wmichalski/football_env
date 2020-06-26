@@ -10,11 +10,18 @@ import numpy as np
 fps = 60
 gamespeed = 1
 max_frames = 300
-map_height = 150  # 600
-map_width = 200  # 1000
-display_width = 250  # 1280
-display_height = 200  # 720
-goal_height = 75  # 200
+
+# map_height = 150  
+# map_width = 200  
+# display_width = 250  
+# display_height = 200  
+# goal_height = 75  
+
+map_height = 600
+map_width = 1000
+display_width = 1280
+display_height = 720
+goal_height = 200
 
 black = (0, 0, 0)
 white = (255, 255, 255)
@@ -55,9 +62,10 @@ class Game():
         self.ball = Ball(int(display_width*0.5),
                          int(display_height*0.5), 12, fps, gamespeed)
 
+        self.memory = [] # game history will be kept here to use for learning
+
         self.game_loop()
         pygame.quit()
-        quit()
 
     def distance_between_two_points(self, x1, y1, x2, y2):
         return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
@@ -239,8 +247,8 @@ class Game():
 
         while not gameExit:
             counter += 1
-            if counter == int(max_frames/gamespeed):
-                break
+            # if counter == int(max_frames/gamespeed):
+            #     break
 
             if self.ball.in_goal:
                 self.ball.reset(display_width/2, display_height/2)

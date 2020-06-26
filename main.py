@@ -1,3 +1,5 @@
 from game import Game
 
-newgame = Game()
+while(1):
+    newgame = Game()
+    del newgame
