@@ -10,11 +10,11 @@ class Player:
         self.gamespeed = gamespeed
 
     def update_velocity(self):
-        slow_param = (0.9)**(60/self.fps * self.gamespeed)
+        slow_param = (0.9)**(self.gamespeed)
 
         self.x_velocity = self.x_velocity*slow_param
         self.y_velocity = self.y_velocity*slow_param
 
     def apply_velocity(self):
-        self.x += self.x_velocity * 60 / self.fps * self.gamespeed
-        self.y += self.y_velocity * 60 / self.fps * self.gamespeed
+        self.x += self.x_velocity * self.gamespeed
+        self.y += self.y_velocity * self.gamespeed

@@ -20,7 +20,7 @@ class Ball:
         self.in_goal = False
 
     def update_velocity(self):
-        slow_param = (0.96)**(60/self.fps * self.gamespeed)
+        slow_param = (0.96)**(self.gamespeed)
 
         self.x_velocity = self.x_velocity*slow_param
         self.y_velocity = self.y_velocity*slow_param
@@ -36,5 +36,5 @@ class Ball:
             self.y_velocity = 0.001
 
     def apply_velocity(self):
-        self.x += self.x_velocity * 60 / self.fps * self.gamespeed
-        self.y += self.y_velocity * 60 / self.fps * self.gamespeed
+        self.x += self.x_velocity * self.gamespeed
+        self.y += self.y_velocity * self.gamespeed
