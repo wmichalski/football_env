@@ -1,40 +1,31 @@
 import math
+import numpy as np
 
 class Ball:
     def __init__(self, x, y, radius, fps, gamespeed):
-        self.x = x
-        self.y = y
+        self.coords = np.array([x, y])
         self.radius = radius
         # avoiding a 0 in velocity vector to simplify math
-        self.x_velocity = 0.001
-        self.y_velocity = 0.001
+        self.velocity = np.array([0.001, 0.001])
         self.in_goal = False
         self.fps = fps
         self.gamespeed = gamespeed
 
     def reset(self, x, y):
-        self.x = x
-        self.y = y
-        self.x_velocity = 0.001
-        self.y_velocity = 0.001
+        self.coords = np.array([x, y])
+        self.velocity = np.array([0.001, 0.001])
         self.in_goal = False
 
     def update_velocity(self):
         slow_param = (0.96)**(self.gamespeed)
 
-        self.x_velocity = self.x_velocity*slow_param
-        self.y_velocity = self.y_velocity*slow_param
+        self.velocity = self.velocity * slow_param
         # sometimes ball gets too fast for some reason
-        speed = math.sqrt(self.x_velocity**2 + self.y_velocity**2)
+        speed = math.sqrt(np.sum(self.velocity**2))
         if speed > 40:
-            self.x_velocity *= 40/speed
-            self.y_velocity *= 40/speed
+            self.velocity = self.velocity * 40/speed
         # avoiding a 0 in velocity vector to simplify math
-        if self.x_velocity == 0:
-            self.x_velocity = 0.001
-        if self.y_velocity == 0:
-            self.y_velocity = 0.001
+        self.velocity = np.where(self.velocity == 0, 0.001, self.velocity)
 
     def apply_velocity(self):
-        self.x += self.x_velocity * self.gamespeed
-        self.y += self.y_velocity * self.gamespeed
+        self.coords = self.coords + self.velocity * self.gamespeed

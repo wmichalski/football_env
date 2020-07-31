@@ -21,7 +21,7 @@ from tensorflow.keras import Input
 from tensorflow.keras import Model
 
 import tensorflow as tf
-
+import os
 import numpy as np
 
 class DQN:
@@ -41,12 +41,11 @@ class DQN:
     def create_model(self, input_shape):
         model = Sequential()
         model.add(Dense(8, input_shape=input_shape))
-        model.add(LeakyReLU(alpha=0.2))
         model.add(Dense(8))
         model.add(LeakyReLU(alpha=0.2))
-        model.add(Dense(18, activation='sigmoid'))
+        model.add(Dense(18, activation='relu'))
 
-        opt = Adam(lr=0.0004, beta_1=0.5)
+        opt = Adam(lr=0.001, beta_1=0.5)
         model.compile(loss='mae', optimizer=opt, metrics=['accuracy'])
         return model
 
@@ -91,3 +90,12 @@ class DQN:
         variables2 = TrainNet.model.trainable_variables
         for v1, v2 in zip(variables1, variables2):
             v1.assign(v2.numpy())
+
+    def save_model(self, path, epoch):
+        if not os.path.exists(path):
+            os.makedirs(path)
+        self.model.save(path + f'/model_{epoch}.h5')
+
+    def load_model(self, path):
+        self.model.load_weights(path)
+
