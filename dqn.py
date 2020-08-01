@@ -28,7 +28,7 @@ class DQN:
     def __init__(self, num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, lr):
         self.num_actions = num_actions
         self.batch_size = batch_size
-        self.optimizer = tf.keras.optimizers.Adam(lr)
+        self.optimizer = tf.keras.optimizers.Adam(lr=0.0004, beta_1=0.5, amsgrad=True)
         self.gamma = gamma
         self.model = self.create_model((1, num_states))
         self.experience = {'s': [], 'a': [], 'r': [], 's2': [], 'done': []}
@@ -40,12 +40,16 @@ class DQN:
 
     def create_model(self, input_shape):
         model = Sequential()
-        model.add(Dense(8, input_shape=input_shape))
-        model.add(Dense(8))
+        model.add(Dense(8, input_shape=input_shape, kernel_initializer='RandomNormal'))
+        model.add(Dense(64, kernel_initializer='RandomNormal'))
         model.add(LeakyReLU(alpha=0.2))
-        model.add(Dense(18, activation='relu'))
+        model.add(Dense(128, kernel_initializer='RandomNormal'))
+        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(64, kernel_initializer='RandomNormal'))
+        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dense(18, kernel_initializer='RandomNormal', activation='linear'))
 
-        opt = Adam(lr=0.001, beta_1=0.5)
+        opt = Adam(lr=0.0004, beta_1=0.5, amsgrad=True)
         model.compile(loss='mae', optimizer=opt, metrics=['accuracy'])
         return model
 

@@ -309,10 +309,10 @@ class Game():
             self.check_borders_player(self.player)
             # done applying physics
 
-            reward = -1
+            reward = -3
 
             if self.is_player_outside(self.player):
-                reward += 2
+                reward += 4
 
             # if self.ball.in_goal:
             #     done = True
