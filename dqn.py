@@ -49,7 +49,7 @@ class DQN:
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dense(18, kernel_initializer='RandomNormal', activation='linear'))
 
-        opt = Adam(lr=0.0004, beta_1=0.5, amsgrad=True)
+        opt = Adam(lr=0.001, beta_1=0.5, amsgrad=True)
         model.compile(loss='mae', optimizer=opt, metrics=['accuracy'])
         return model
 

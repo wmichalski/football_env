@@ -28,6 +28,10 @@ white = (255, 255, 255)
 red = (255, 0, 0)
 green = (119, 221, 119)
 
+move_matrix = np.array([[0, 0, 0.7, 0.7, 0.7, 0, -0.7, -0.7, -0.7, 0, 0, 0.7, 0.7, 0.7, 0, -0.7, -0.7, -0.7],
+    [0, 0.7, 0.7, 0, -0.7, -0.7, -0.7, 0, 0.7, 0, 0.7, 0.7, 0, -0.7, -0.7, -0.7, 0, 0.7],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1]])
+
 
 def unit_vector(vector):
     """ Returns the unit vector of the vector.  """
@@ -293,7 +297,7 @@ class Game():
             vel_change, isKick = self.make_action(action)
 
             # applying physics
-            if(isKick):
+            if(isKick > 0.5):
                 self.kick(self.player, self.ball)
 
             self.player.velocity = self.player.velocity + vel_change
@@ -309,10 +313,10 @@ class Game():
             self.check_borders_player(self.player)
             # done applying physics
 
-            reward = -3
+            reward = 1
 
             if self.is_player_outside(self.player):
-                reward += 4
+                reward -= 4
 
             # if self.ball.in_goal:
             #     done = True
@@ -336,12 +340,12 @@ class Game():
                 TargetNet.copy_weights(TrainNet)
 
 
-            self.gameDisplay.fill(green)
-            self.draw_map()
-            self.draw_player(self.player)
-            self.draw_ball(self.ball)
+            # self.gameDisplay.fill(green)
+            # self.draw_map()
+            # self.draw_player(self.player)
+            # self.draw_ball(self.ball)
 
-            pygame.display.update()
+            # pygame.display.update()
 
             #print(self.ball.x_velocity, self.ball.y_velocity)
             self.clock.tick(fps)
@@ -350,6 +354,11 @@ class Game():
         return rewards, mean(losses)
 
     def make_action(self, action):
+        # 18 actions
+        # selected_move = move_matrix[:,action]
+
+        # return selected_move[0:2], selected_move[2]
+
         x_change = 0
         y_change = 0
         kick = 0
