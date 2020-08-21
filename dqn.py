@@ -17,6 +17,7 @@ from tensorflow.keras.layers import LeakyReLU
 from tensorflow.keras.layers import Conv2D
 from tensorflow.keras.initializers import glorot_uniform
 from tensorflow.keras.initializers import RandomUniform
+from tensorflow.keras import initializers
 from tensorflow.keras import Input
 from tensorflow.keras import Model
 
@@ -24,11 +25,18 @@ import tensorflow as tf
 import os
 import numpy as np
 
+from tensorflow.keras.mixed_precision import experimental as mixed_precision
+# policy = mixed_precision.Policy('mixed_float16')
+# mixed_precision.set_policy(policy)
+
+tf.compat.v1.enable_eager_execution()
+tf.config.optimizer.set_jit(True)
+
 class DQN:
     def __init__(self, num_states, num_actions, hidden_units, gamma, max_experiences, min_experiences, batch_size, lr):
         self.num_actions = num_actions
         self.batch_size = batch_size
-        self.optimizer = tf.keras.optimizers.Adam(lr=0.0004, beta_1=0.5, amsgrad=True)
+        self.optimizer = tf.keras.optimizers.Adam(lr=0.0001, amsgrad=True)
         self.gamma = gamma
         self.model = self.create_model((1, num_states))
         self.experience = {'s': [], 'a': [], 'r': [], 's2': [], 'done': []}
@@ -40,17 +48,22 @@ class DQN:
 
     def create_model(self, input_shape):
         model = Sequential()
-        model.add(Dense(8, input_shape=input_shape, kernel_initializer='RandomNormal'))
-        model.add(Dense(64, kernel_initializer='RandomNormal'))
+        model.add(Dense(4, input_shape=input_shape, kernel_initializer='RandomNormal'))
+        model.add(Dense(32, kernel_initializer='RandomNormal'))
         model.add(LeakyReLU(alpha=0.2))
-        model.add(Dense(128, kernel_initializer='RandomNormal'))
+        # model.add(Dropout(0.2))
+        model.add(Dense(32, kernel_initializer='RandomNormal'))
         model.add(LeakyReLU(alpha=0.2))
-        model.add(Dense(64, kernel_initializer='RandomNormal'))
+        # model.add(Dropout(0.2))
+        model.add(Dense(32, kernel_initializer='RandomNormal'))
+        model.add(LeakyReLU(alpha=0.2))
+        # model.add(Dropout(0.2))
+        model.add(Dense(32, kernel_initializer='RandomNormal'))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dense(18, kernel_initializer='RandomNormal', activation='linear'))
 
-        opt = Adam(lr=0.001, beta_1=0.5, amsgrad=True)
-        model.compile(loss='mae', optimizer=opt, metrics=['accuracy'])
+        opt = Adam(lr=0.0001, amsgrad=True)
+        model.compile(loss='mse', optimizer=opt, metrics=['accuracy'])
         return model
 
     def train(self, TargetNet):
@@ -68,9 +81,9 @@ class DQN:
 
         with tf.GradientTape() as tape:
             selected_action_values = tf.math.reduce_sum(
-                self.predict(states) * tf.one_hot(actions, self.num_actions), axis=1)
+                input_tensor=self.predict(states) * tf.one_hot(actions, self.num_actions), axis=1)
             loss = tf.math.reduce_mean(
-                tf.square(actual_values - selected_action_values))
+                input_tensor=tf.square(actual_values - selected_action_values))
         variables = self.model.trainable_variables
         gradients = tape.gradient(loss, variables)
         self.optimizer.apply_gradients(zip(gradients, variables))
@@ -102,4 +115,3 @@ class DQN:
 
     def load_model(self, path):
         self.model.load_weights(path)
-

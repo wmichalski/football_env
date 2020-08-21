@@ -1,4 +1,4 @@
 from game import Game
 
-newGame = Game()
+newGame = Game(True)
 newGame.game_loop()

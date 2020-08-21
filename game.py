@@ -15,6 +15,12 @@ map_height = 200
 map_width = 333  
 display_width = 400  
 display_height = 300  
+
+half_mh = map_height/2
+half_mw = map_width/2
+half_dw = display_width/2
+half_dh = display_height/2
+
 goal_height = 175
 
 # map_height = 600
@@ -54,22 +60,25 @@ def angle_between(v1, v2):
 
 
 class Game():
-    def __init__(self):
+    def __init__(self, human_interaction=False):
         pygame.init()
+
+        self.human_interaction = human_interaction
 
         self.gameDisplay = pygame.display.set_mode(
            (display_width, display_height))
         self.clock = pygame.time.Clock()
 
         self.player = Player(int(display_width*0.75),
-                             int(display_height*0.75), 20, fps, gamespeed)
+                             int(display_height*0.25), 20, fps, gamespeed)
         self.ball = Ball(int(display_width*0.5),
                          int(display_height*0.5), 12, fps, gamespeed)
 
         self.memory = [] # game history will be kept here to use for learning
 
     def reset_game(self):
-        self.player.reset(int(display_width*0.75), int(display_height*0.75))
+        self.player.reset(int(display_width*np.random.random()), int(display_height*np.random.random()))
+        # self.player.reset(int(display_width*0.75), int(display_height*0.75))
         self.ball.reset(int(display_width*0.5), int(display_height*0.5))
         self.memory = []
 
@@ -117,16 +126,16 @@ class Game():
     def is_ball_close_to_walls(self, ball):
         # TODO not just walls but all collisions in general, especially other players
 
-        if ball.coords[0] <= display_width/2 - map_width/2 + 2*ball.radius:
+        if ball.coords[0] <= half_dw - half_mw + 2*ball.radius:
             return True
 
-        if ball.coords[0]  >= display_width/2 + map_width/2 - 2*ball.radius:
+        if ball.coords[0]  >= half_dw + half_mw - 2*ball.radius:
             return True
 
-        if ball.coords[1]  >= display_height/2 + map_height/2 - 2*ball.radius:
+        if ball.coords[1]  >= half_dh + half_mh - 2*ball.radius:
             return True
 
-        if ball.coords[1] <= display_height/2 - map_height/2 + 2*ball.radius:
+        if ball.coords[1] <= half_dh - half_mh + 2*ball.radius:
             return True
 
         return False
@@ -169,28 +178,28 @@ class Game():
 
     def check_borders_ball(self, ball):
         # left border
-        if ball.coords[0] <= display_width/2 - map_width/2 + ball.radius:
-            if ball.coords[1] > display_height/2 - goal_height/2 and ball.coords[1] < display_height/2 + goal_height/2:
+        if ball.coords[0] <= half_dw - half_mw + ball.radius:
+            if ball.coords[1] > half_dh - goal_height/2 and ball.coords[1] < half_dh + goal_height/2:
                 # if tha ball is fully inside of the goal:
-                if ball.coords[0] <= display_width/2 - map_width/2 - ball.radius:
+                if ball.coords[0] <= half_dw - half_mw - ball.radius:
                     ball.in_goal = True
             else:
-                ball.coords[0] = display_width/2 - map_width/2 + ball.radius
+                ball.coords[0] = half_dw - half_mw + ball.radius
                 ball.velocity[0] *= -1
 
         # right border
-        if ball.coords[0] >= display_width/2 + map_width/2 - ball.radius:
-            ball.coords[0] = display_width/2 + map_width/2 - ball.radius
+        if ball.coords[0] >= half_dw + half_mw - ball.radius:
+            ball.coords[0] = half_dw + half_mw - ball.radius
             ball.velocity[0] *= -1
 
         # bottom border
-        if ball.coords[1] >= display_height/2 + map_height/2 - ball.radius:
-            ball.coords[1] = display_height/2 + map_height/2 - ball.radius
+        if ball.coords[1] >= half_dh + half_mh - ball.radius:
+            ball.coords[1] = half_dh + half_mh - ball.radius
             ball.velocity[1] *= -1
 
         # top border
-        if ball.coords[1] <= display_height/2 - map_height/2 + ball.radius:
-            ball.coords[1] = display_height/2 - map_height/2 + ball.radius
+        if ball.coords[1] <= half_dh - half_mh + ball.radius:
+            ball.coords[1] = half_dh - half_mh + ball.radius
             ball.velocity[1] *= -1
 
     def check_borders_player(self, player):
@@ -240,19 +249,19 @@ class Game():
 
     def is_player_outside(self, player):
         # left border
-        if player.coords[0] <= display_width/2 - map_width/2 + player.radius:
+        if player.coords[0] <= half_dw - half_mw + player.radius:
             return True
 
         # right border
-        if player.coords[0] >= display_width/2 + map_width/2 - player.radius:
+        if player.coords[0] >= half_dw + half_mw - player.radius:
             return True
 
         # bottom border
-        if player.coords[1] >= display_height/2 + map_height/2 - player.radius:
+        if player.coords[1] >= half_dh + half_mh - player.radius:
             return True
 
         # top border
-        if player.coords[1] <= display_height/2 - map_height/2 + player.radius:
+        if player.coords[1] <= half_dh - half_mh + player.radius:
             return True
 
         return False
@@ -265,40 +274,41 @@ class Game():
         iter = 0
 
         while not (gameExit or done):
-            # for event in pygame.event.get():
-            #     if event.type == pygame.QUIT:
-            #         pygame.quit()
-            #         quit()
+            if self.human_interaction:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        quit()
 
-            # keys = pygame.key.get_pressed()
+                keys = pygame.key.get_pressed()
 
-            # x_change = 0
-            # y_change = 0
+                x_change = 0
+                y_change = 0
 
-            # if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-            #     x_change += -0.7 * gamespeed
-            # if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-            #     x_change += 0.7 * gamespeed
-            # if keys[pygame.K_UP] or keys[pygame.K_w]:
-            #     y_change += -0.7 * gamespeed
-            # if keys[pygame.K_DOWN] or keys[pygame.K_s]:
-            #     y_change += 0.7 * gamespeed
-            # if keys[pygame.K_SPACE]:
-            #     self.kick(self.player, self.ball)
+                if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+                    x_change += -0.7 * gamespeed
+                if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+                    x_change += 0.7 * gamespeed
+                if keys[pygame.K_UP] or keys[pygame.K_w]:
+                    y_change += -0.7 * gamespeed
+                if keys[pygame.K_DOWN] or keys[pygame.K_s]:
+                    y_change += 0.7 * gamespeed
+                if keys[pygame.K_SPACE]:
+                    self.kick(self.player, self.ball)
 
-            # vel_change = np.array([x_change, y_change])
+                vel_change = np.array([x_change, y_change])
 
             # TODO somehow find a solution to keep intuitive controls while increasing gamespeed
             # gamespeed also PROBABLY should be reduced by slow_param**gamespeed?
+            else:
+                observations = self.get_game_state()
+                action = TrainNet.get_action(observations, epsilon)
+                prev_observations = observations
+                vel_change, isKick = self.make_action(action)
 
-            observations = self.get_game_state()
-            action = TrainNet.get_action(observations, epsilon)
-            prev_observations = observations
-            vel_change, isKick = self.make_action(action)
-
-            # applying physics
-            if(isKick > 0.5):
-                self.kick(self.player, self.ball)
+                # applying physics
+                if(isKick > 0.5):
+                    self.kick(self.player, self.ball)
 
             self.player.velocity = self.player.velocity + vel_change
 
@@ -316,7 +326,7 @@ class Game():
             reward = 1
 
             if self.is_player_outside(self.player):
-                reward -= 4
+                reward = -1
 
             # if self.ball.in_goal:
             #     done = True
@@ -327,25 +337,28 @@ class Game():
 
             rewards += reward
 
-            observations = self.get_game_state()
-            exp = {'s': prev_observations, 'a': action, 'r': reward, 's2': observations, 'done': done}
-            TrainNet.add_experience(exp)
-            loss = TrainNet.train(TargetNet)
-            if isinstance(loss, int):
-                losses.append(loss)
+            if not self.human_interaction:
+                observations = self.get_game_state()
+                exp = {'s': prev_observations, 'a': action, 'r': reward, 's2': observations, 'done': done}
+                TrainNet.add_experience(exp)
+                loss = TrainNet.train(TargetNet)
+                if isinstance(loss, int):
+                    losses.append(loss)
+                else:
+                    losses.append(loss.numpy())
+                iter += 1
+                if iter % copy_step == 0:
+                    TargetNet.copy_weights(TrainNet)
             else:
-                losses.append(loss.numpy())
-            iter += 1
-            if iter % copy_step == 0:
-                TargetNet.copy_weights(TrainNet)
+                iter += 1
 
 
-            # self.gameDisplay.fill(green)
-            # self.draw_map()
-            # self.draw_player(self.player)
-            # self.draw_ball(self.ball)
+            self.gameDisplay.fill(green)
+            self.draw_map()
+            self.draw_player(self.player)
+            self.draw_ball(self.ball)
 
-            # pygame.display.update()
+            pygame.display.update()
 
             #print(self.ball.x_velocity, self.ball.y_velocity)
             self.clock.tick(fps)
@@ -355,45 +368,46 @@ class Game():
 
     def make_action(self, action):
         # 18 actions
-        # selected_move = move_matrix[:,action]
+        selected_move = move_matrix[:,action]
 
-        # return selected_move[0:2], selected_move[2]
+        return selected_move[0:2], selected_move[2]
 
-        x_change = 0
-        y_change = 0
-        kick = 0
+        # x_change = 0
+        # y_change = 0
+        # kick = 0
 
         # 18 actions
 
-        if action >= 9:
-            kick = 1
+        # if action >= 9:
+        #     kick = 1
 
-        action = action - 9
+        # action = action - 9
 
-        if action == 1:
-            y_change += 0.7 * gamespeed
-        if action == 2:
-            y_change += 0.7 * gamespeed
-            x_change += 0.7 * gamespeed
-        if action == 3:
-            x_change += 0.7 * gamespeed
-        if action == 4:
-            y_change -= 0.7 * gamespeed
-            x_change += 0.7 * gamespeed
-        if action == 5:
-            y_change -= 0.7 * gamespeed
-        if action == 6:
-            y_change -= 0.7 * gamespeed
-            x_change -= 0.7 * gamespeed
-        if action == 7:
-            x_change -= 0.7 * gamespeed
-        if action == 8:
-            y_change += 0.7 * gamespeed
-            x_change -= 0.7 * gamespeed
+        # if action == 1:
+        #     y_change += 0.7 * gamespeed
+        # if action == 2:
+        #     y_change += 0.7 * gamespeed
+        #     x_change += 0.7 * gamespeed
+        # if action == 3:
+        #     x_change += 0.7 * gamespeed
+        # if action == 4:
+        #     y_change -= 0.7 * gamespeed
+        #     x_change += 0.7 * gamespeed
+        # if action == 5:
+        #     y_change -= 0.7 * gamespeed
+        # if action == 6:
+        #     y_change -= 0.7 * gamespeed
+        #     x_change -= 0.7 * gamespeed
+        # if action == 7:
+        #     x_change -= 0.7 * gamespeed
+        # if action == 8:
+        #     y_change += 0.7 * gamespeed
+        #     x_change -= 0.7 * gamespeed
 
-        return np.array([x_change, y_change]), kick
+        # return np.array([x_change, y_change]), kick
 
     def get_game_state(self):
-        data = np.concatenate((self.player.coords/map_width, self.player.velocity/25, self.ball.coords/map_width, self.ball.velocity/25))
+        #data = np.concatenate(((self.player.coords-0.5*map_width)/map_width, self.player.velocity, (self.ball.coords-0.5*map_width)/map_width, self.ball.velocity))
+        data = np.concatenate(((self.player.coords-half_mw), (self.ball.coords-half_mw)))
         data.reshape((-1, 1))
         return data
