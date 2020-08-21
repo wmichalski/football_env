@@ -67,6 +67,8 @@ class DQN:
         return model
 
     def train(self, TargetNet):
+        tf.compat.v1.enable_eager_execution()
+        tf.config.optimizer.set_jit(True)
         if len(self.experience['s']) < self.min_experiences:
             return 0
         ids = np.random.randint(low=0, high=len(
@@ -76,6 +78,13 @@ class DQN:
         rewards = np.asarray([self.experience['r'][i] for i in ids])
         states_next = np.asarray([self.experience['s2'][i] for i in ids])
         dones = np.asarray([self.experience['done'][i] for i in ids])
+
+        # states = np.take(self.experience['s'], ids, axis=0)
+        # actions = np.take(self.experience['a'], ids)
+        # rewards = np.take(self.experience['r'], ids)
+        # states_next = np.take(self.experience['s2'], ids, axis=0)
+        # dones = np.take(self.experience['done'], ids)
+
         value_next = np.max(TargetNet.predict(states_next), axis=1)
         actual_values = np.where(dones, rewards, rewards+self.gamma*value_next)
 

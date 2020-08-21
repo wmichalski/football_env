@@ -9,5 +9,8 @@ for value in values:
 
 f.close()
 
+fig = plt.figure()
+plt.xlabel('episodes')
+plt.ylabel('average score in last 100 episodes')
 plt.plot(floats)
 plt.show()

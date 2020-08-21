@@ -38,6 +38,8 @@ move_matrix = np.array([[0, 0, 0.7, 0.7, 0.7, 0, -0.7, -0.7, -0.7, 0, 0, 0.7, 0.
     [0, 0.7, 0.7, 0, -0.7, -0.7, -0.7, 0, 0.7, 0, 0.7, 0.7, 0, -0.7, -0.7, -0.7, 0, 0.7],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1]])
 
+normalisation_array = np.array([half_dw, half_dh])
+
 
 def unit_vector(vector):
     """ Returns the unit vector of the vector.  """
@@ -353,12 +355,12 @@ class Game():
                 iter += 1
 
 
-            self.gameDisplay.fill(green)
-            self.draw_map()
-            self.draw_player(self.player)
-            self.draw_ball(self.ball)
+            # self.gameDisplay.fill(green)
+            # self.draw_map()
+            # self.draw_player(self.player)
+            # self.draw_ball(self.ball)
 
-            pygame.display.update()
+            # pygame.display.update()
 
             #print(self.ball.x_velocity, self.ball.y_velocity)
             self.clock.tick(fps)
@@ -371,6 +373,7 @@ class Game():
         selected_move = move_matrix[:,action]
 
         return selected_move[0:2], selected_move[2]
+        
 
         # x_change = 0
         # y_change = 0
@@ -408,6 +411,6 @@ class Game():
 
     def get_game_state(self):
         #data = np.concatenate(((self.player.coords-0.5*map_width)/map_width, self.player.velocity, (self.ball.coords-0.5*map_width)/map_width, self.ball.velocity))
-        data = np.concatenate(((self.player.coords-half_mw), (self.ball.coords-half_mw)))
+        data = np.concatenate(((self.player.coords-normalisation_array), self.player.velocity))
         data.reshape((-1, 1))
         return data
