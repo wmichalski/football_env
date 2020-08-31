@@ -14,7 +14,7 @@ from tensorflow.keras.mixed_precision import experimental as mixed_precision
 
 gamma = 0.99
 copy_step = 100
-num_states = 4
+num_states = 8
 num_actions = 18
 hidden_units = [200, 200]
 max_experiences = 1000

@@ -411,6 +411,6 @@ class Game():
 
     def get_game_state(self):
         #data = np.concatenate(((self.player.coords-0.5*map_width)/map_width, self.player.velocity, (self.ball.coords-0.5*map_width)/map_width, self.ball.velocity))
-        data = np.concatenate(((self.player.coords-normalisation_array), self.player.velocity))
+        data = np.concatenate(((self.player.coords-normalisation_array), self.player.velocity, (self.ball.coords-normalisation_array), self.ball.velocity))
         data.reshape((-1, 1))
         return data

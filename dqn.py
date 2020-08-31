@@ -48,17 +48,17 @@ class DQN:
 
     def create_model(self, input_shape):
         model = Sequential()
-        model.add(Dense(4, input_shape=input_shape, kernel_initializer='RandomNormal'))
-        model.add(Dense(32, kernel_initializer='RandomNormal'))
+        model.add(Dense(8, input_shape=input_shape, kernel_initializer='RandomNormal'))
+        model.add(Dense(64, kernel_initializer='RandomNormal'))
         model.add(LeakyReLU(alpha=0.2))
         # model.add(Dropout(0.2))
-        model.add(Dense(32, kernel_initializer='RandomNormal'))
+        model.add(Dense(64, kernel_initializer='RandomNormal'))
         model.add(LeakyReLU(alpha=0.2))
         # model.add(Dropout(0.2))
-        model.add(Dense(32, kernel_initializer='RandomNormal'))
+        model.add(Dense(64, kernel_initializer='RandomNormal'))
         model.add(LeakyReLU(alpha=0.2))
         # model.add(Dropout(0.2))
-        model.add(Dense(32, kernel_initializer='RandomNormal'))
+        model.add(Dense(64, kernel_initializer='RandomNormal'))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dense(18, kernel_initializer='RandomNormal', activation='linear'))
 
