@@ -79,7 +79,7 @@ class Game():
         self.memory = [] # game history will be kept here to use for learning
 
     def reset_game(self):
-        self.player.reset(int(display_width*np.random.random()), int(display_height*np.random.random()))
+        self.player.reset(int(display_width*(0.5+np.random.random()/2)), int(display_height*np.random.random()))
         # self.player.reset(int(display_width*0.75), int(display_height*0.75))
         self.ball.reset(int(display_width*0.5), int(display_height*0.5))
         self.memory = []
@@ -304,7 +304,8 @@ class Game():
             # gamespeed also PROBABLY should be reduced by slow_param**gamespeed?
             else:
                 observations = self.get_game_state()
-                action = TrainNet.get_action(observations, epsilon)
+                if iter % 4 == 0:
+                    action = TrainNet.get_action(observations, epsilon)
                 prev_observations = observations
                 vel_change, isKick = self.make_action(action)
 
@@ -325,14 +326,14 @@ class Game():
             self.check_borders_player(self.player)
             # done applying physics
 
-            reward = 1
+            reward = 0.995-self.ball.coords[0]/half_mw
 
-            if self.is_player_outside(self.player):
-                reward = -1
+            # if self.is_player_outside(self.player):
+            #     reward = -1
 
-            # if self.ball.in_goal:
-            #     done = True
-            #     reward = 1000
+            if self.ball.in_goal:
+                done = True
+                reward = 1000
 
             if iter == int(300):
                 done = True
@@ -342,8 +343,10 @@ class Game():
             if not self.human_interaction:
                 observations = self.get_game_state()
                 exp = {'s': prev_observations, 'a': action, 'r': reward, 's2': observations, 'done': done}
-                TrainNet.add_experience(exp)
-                loss = TrainNet.train(TargetNet)
+                if iter % 4 == 0:
+                    TrainNet.add_experience(exp)
+                    loss = TrainNet.train(TargetNet)
+                    
                 if isinstance(loss, int):
                     losses.append(loss)
                 else:
@@ -355,12 +358,12 @@ class Game():
                 iter += 1
 
 
-            # self.gameDisplay.fill(green)
-            # self.draw_map()
-            # self.draw_player(self.player)
-            # self.draw_ball(self.ball)
+            self.gameDisplay.fill(green)
+            self.draw_map()
+            self.draw_player(self.player)
+            self.draw_ball(self.ball)
 
-            # pygame.display.update()
+            pygame.display.update()
 
             #print(self.ball.x_velocity, self.ball.y_velocity)
             self.clock.tick(fps)

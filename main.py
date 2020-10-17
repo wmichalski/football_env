@@ -15,7 +15,7 @@ from tensorflow.keras.mixed_precision import experimental as mixed_precision
 gamma = 0.99
 copy_step = 100
 num_states = 8
-num_actions = 18
+num_actions = 9
 hidden_units = [200, 200]
 max_experiences = 1000
 min_experiences = 100
@@ -30,8 +30,8 @@ TrainNet = DQN(num_states, num_actions, hidden_units, gamma,
 TargetNet = DQN(num_states, num_actions, hidden_units, gamma,
                 max_experiences, min_experiences, batch_size, lr)
 
-# TrainNet.load_model('models/success_100update/train/model_1600.h5')
-# TargetNet.load_model('models/success_100update/target/model_1600.h5')
+# TrainNet.load_model('models/20201017_goal/train/model_5400.h5')
+# TargetNet.load_model('models/20201017_goal/target/model_5400.h5')
 
 N = 50000
 total_rewards = np.empty(N)
