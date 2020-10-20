@@ -35,8 +35,8 @@ TargetNet = DQN(num_states, num_actions, hidden_units, gamma,
 
 N = 50000
 total_rewards = np.empty(N)
-epsilon = 0.99
-decay = 0.999
+epsilon = 0.995
+decay = 0.9995
 min_epsilon = 0.1
 
 f = open('logs.txt', 'a', buffering=1024)

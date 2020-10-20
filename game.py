@@ -304,7 +304,7 @@ class Game():
             # gamespeed also PROBABLY should be reduced by slow_param**gamespeed?
             else:
                 observations = self.get_game_state()
-                if iter % 4 == 0:
+                if iter % 3 == 0:
                     action = TrainNet.get_action(observations, epsilon)
                 prev_observations = observations
                 vel_change, isKick = self.make_action(action)
@@ -343,8 +343,8 @@ class Game():
             if not self.human_interaction:
                 observations = self.get_game_state()
                 exp = {'s': prev_observations, 'a': action, 'r': reward, 's2': observations, 'done': done}
+                TrainNet.add_experience(exp)
                 if iter % 4 == 0:
-                    TrainNet.add_experience(exp)
                     loss = TrainNet.train(TargetNet)
                     
                 if isinstance(loss, int):
@@ -352,23 +352,22 @@ class Game():
                 else:
                     losses.append(loss.numpy())
                 iter += 1
-                if iter % copy_step == 0:
-                    TargetNet.copy_weights(TrainNet)
             else:
                 iter += 1
 
 
-            self.gameDisplay.fill(green)
-            self.draw_map()
-            self.draw_player(self.player)
-            self.draw_ball(self.ball)
+            # self.gameDisplay.fill(green)
+            # self.draw_map()
+            # self.draw_player(self.player)
+            # self.draw_ball(self.ball)
 
-            pygame.display.update()
+            # pygame.display.update()
 
             #print(self.ball.x_velocity, self.ball.y_velocity)
             self.clock.tick(fps)
 
         self.reset_game()
+        TargetNet.copy_weights(TrainNet)
         return rewards, mean(losses)
 
     def make_action(self, action):
@@ -413,7 +412,6 @@ class Game():
         # return np.array([x_change, y_change]), kick
 
     def get_game_state(self):
-        #data = np.concatenate(((self.player.coords-0.5*map_width)/map_width, self.player.velocity, (self.ball.coords-0.5*map_width)/map_width, self.ball.velocity))
         data = np.concatenate(((self.player.coords-normalisation_array), self.player.velocity, (self.ball.coords-normalisation_array), self.ball.velocity))
         data.reshape((-1, 1))
         return data
