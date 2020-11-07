@@ -7,9 +7,9 @@ import math
 import numpy as np
 from statistics import mean
 
-fps = 6000
+fps = 120
 gamespeed = 1
-max_frames = 300
+max_frames = 3000
 
 map_height = 200  
 map_width = 333  
@@ -21,7 +21,7 @@ half_mw = map_width/2
 half_dw = display_width/2
 half_dh = display_height/2
 
-goal_height = 175
+goal_height = 100
 
 # map_height = 600
 # map_width = 1000
@@ -79,7 +79,8 @@ class Game():
         self.memory = [] # game history will be kept here to use for learning
 
     def reset_game(self):
-        self.player.reset(int(display_width*(0.5+np.random.random()/2)), int(display_height*np.random.random()))
+        width_of_spawn = 0.75
+        self.player.reset(int(display_width*(1-width_of_spawn+np.random.random()*width_of_spawn)), int(display_height*np.random.random()))
         # self.player.reset(int(display_width*0.75), int(display_height*0.75))
         self.ball.reset(int(display_width*0.5), int(display_height*0.5))
         self.memory = []
@@ -300,11 +301,9 @@ class Game():
 
                 vel_change = np.array([x_change, y_change])
 
-            # TODO somehow find a solution to keep intuitive controls while increasing gamespeed
-            # gamespeed also PROBABLY should be reduced by slow_param**gamespeed?
             else:
                 observations = self.get_game_state()
-                if iter % 3 == 0:
+                if iter % 1 == 0:
                     action = TrainNet.get_action(observations, epsilon)
                 prev_observations = observations
                 vel_change, isKick = self.make_action(action)
@@ -344,7 +343,7 @@ class Game():
                 observations = self.get_game_state()
                 exp = {'s': prev_observations, 'a': action, 'r': reward, 's2': observations, 'done': done}
                 TrainNet.add_experience(exp)
-                if iter % 4 == 0:
+                if iter % 3 == 0:
                     loss = TrainNet.train(TargetNet)
                     
                 if isinstance(loss, int):
@@ -356,18 +355,19 @@ class Game():
                 iter += 1
 
 
-            # self.gameDisplay.fill(green)
-            # self.draw_map()
-            # self.draw_player(self.player)
-            # self.draw_ball(self.ball)
+            self.gameDisplay.fill(green)
+            self.draw_map()
+            self.draw_player(self.player)
+            self.draw_ball(self.ball)
 
-            # pygame.display.update()
+            pygame.display.update()
 
             #print(self.ball.x_velocity, self.ball.y_velocity)
             self.clock.tick(fps)
 
         self.reset_game()
         TargetNet.copy_weights(TrainNet)
+        # losses = [0, 1]
         return rewards, mean(losses)
 
     def make_action(self, action):

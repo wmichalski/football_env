@@ -19,7 +19,7 @@ num_actions = 9
 hidden_units = [200, 200]
 max_experiences = 1000
 min_experiences = 100
-batch_size = 128
+batch_size = 32
 lr = 1e-3
 current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 log_dir = 'logs/dqn/' + current_time
@@ -30,14 +30,14 @@ TrainNet = DQN(num_states, num_actions, hidden_units, gamma,
 TargetNet = DQN(num_states, num_actions, hidden_units, gamma,
                 max_experiences, min_experiences, batch_size, lr)
 
-# TrainNet.load_model('models/20201017_goal/train/model_5400.h5')
-# TargetNet.load_model('models/20201017_goal/target/model_5400.h5')
+TrainNet.load_model('/home/wiktor/Desktop/INZYNIERKA_WAZNE/03_11_2020/train/model_8600.h5')
+TargetNet.load_model('/home/wiktor/Desktop/INZYNIERKA_WAZNE/03_11_2020/target/model_8600.h5')
 
 N = 50000
 total_rewards = np.empty(N)
-epsilon = 0.995
+epsilon = 0.0
 decay = 0.9995
-min_epsilon = 0.1
+min_epsilon = 0.0
 
 f = open('logs.txt', 'a', buffering=1024)
 
@@ -46,6 +46,9 @@ game = Game()
 for n in range(N):
     epsilon = max(min_epsilon, epsilon * decay)
     #sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
+
+    if n % 10 == 0:
+        TargetNet.copy_weights(TrainNet)
 
     total_reward, losses = game.game_loop(TrainNet, TargetNet, epsilon, copy_step)
     total_rewards[n] = total_reward
