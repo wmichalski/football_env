@@ -1,5 +1,6 @@
 from game import Game
 from dqn import DQN
+from player import Player
 import tensorflow as tf
 import datetime
 import numpy as np
@@ -14,7 +15,7 @@ from tensorflow.keras.mixed_precision import experimental as mixed_precision
 
 gamma = 0.99
 copy_step = 100
-num_states = 8
+num_states = 12
 num_actions = 9
 hidden_units = [200, 200]
 max_experiences = 1000
@@ -25,44 +26,62 @@ current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 log_dir = 'logs/dqn/' + current_time
 summary_writer = tf.compat.v2.summary.create_file_writer(logdir=log_dir)
 
-TrainNet = DQN(num_states, num_actions, hidden_units, gamma,
+TrainNet1 = DQN(num_states, num_actions, hidden_units, gamma,
                max_experiences, min_experiences, batch_size, lr)
-TargetNet = DQN(num_states, num_actions, hidden_units, gamma,
+TargetNet1 = DQN(num_states, num_actions, hidden_units, gamma,
                 max_experiences, min_experiences, batch_size, lr)
 
-TrainNet.load_model('/home/wiktor/Desktop/INZYNIERKA_WAZNE/03_11_2020/train/model_8600.h5')
-TargetNet.load_model('/home/wiktor/Desktop/INZYNIERKA_WAZNE/03_11_2020/target/model_8600.h5')
+TrainNet2 = DQN(num_states, num_actions, hidden_units, gamma,
+               max_experiences, min_experiences, batch_size, lr)
+TargetNet2 = DQN(num_states, num_actions, hidden_units, gamma,
+                max_experiences, min_experiences, batch_size, lr)
+
+player1 = Player()
+player1.Train = TrainNet1
+player1.Target = TargetNet1
+
+player2 = Player()
+player2.Train = TrainNet2
+player2.Target = TargetNet2
+
+players = [player1, player2]
 
 N = 50000
 total_rewards = np.empty(N)
-epsilon = 0.0
-decay = 0.9995
-min_epsilon = 0.0
+epsilon = 0.9
+decay = 0.999
+min_epsilon = 0.1
 
 f = open('logs.txt', 'a', buffering=1024)
 
-game = Game()
+game = Game(players)
 
 for n in range(N):
     epsilon = max(min_epsilon, epsilon * decay)
     #sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
 
-    if n % 10 == 0:
-        TargetNet.copy_weights(TrainNet)
+    if n % 5 == 0:
+        player1.Target.copy_weights(player1.Train)
+        player2.Target.copy_weights(player2.Train)
 
-    total_reward, losses = game.game_loop(TrainNet, TargetNet, epsilon, copy_step)
-    total_rewards[n] = total_reward
-    avg_rewards = total_rewards[max(0, n - 100):(n + 1)].mean()
-    with summary_writer.as_default():
-        tf.compat.v1.summary.scalar('episode reward', total_reward)
-        tf.compat.v1.summary.scalar('running avg reward(100)', avg_rewards)
-        tf.compat.v1.summary.scalar('average loss)', losses)
+    game.game_loop(epsilon, copy_step)
+
+    # total_reward, losses = game.game_loop(epsilon, copy_step)
+    # total_rewards[n] = total_reward
+    # avg_rewards = total_rewards[max(0, n - 100):(n + 1)].mean()
+    # with summary_writer.as_default():
+    #     tf.compat.v1.summary.scalar('episode reward', total_reward)
+    #     tf.compat.v1.summary.scalar('running avg reward(100)', avg_rewards)
+    #     tf.compat.v1.summary.scalar('average loss)', losses)
     if n % 100 == 0:
-        print("episode:", n, "episode reward:", total_reward, "eps:", epsilon, "avg reward (last 100):", avg_rewards,
-                "episode loss: ", losses)
-        TrainNet.save_model('models/train/', n)
-        TargetNet.save_model('models/target/', n)
+        print(n, " epsilon: ", epsilon)
+        # print("episode:", n, "episode reward:", total_reward, "eps:", epsilon, "avg reward (last 100):", avg_rewards,
+        #         "episode loss: ", losses)
+        player1.Train.save_model('models/p1/train/', n)
+        player1.Target.save_model('models/p1/target/', n)
+        player2.Train.save_model('models/p2/train/', n)
+        player2.Target.save_model('models/p2/target/', n)
         f.flush()
-    print("avg reward for last 100 episodes:", avg_rewards)
-    f.write(str(avg_rewards)+"\n")
+    # print("avg reward for last 100 episodes:", avg_rewards)
+    # f.write(str(avg_rewards)+"\n")
 f.close()

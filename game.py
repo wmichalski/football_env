@@ -7,7 +7,7 @@ import math
 import numpy as np
 from statistics import mean
 
-fps = 120
+fps = 12000
 gamespeed = 1
 max_frames = 3000
 
@@ -62,7 +62,7 @@ def angle_between(v1, v2):
 
 
 class Game():
-    def __init__(self, human_interaction=False):
+    def __init__(self, players, human_interaction=False):
         pygame.init()
 
         self.human_interaction = human_interaction
@@ -71,17 +71,23 @@ class Game():
            (display_width, display_height))
         self.clock = pygame.time.Clock()
 
-        self.player = Player(int(display_width*0.75),
-                             int(display_height*0.25), 20, fps, gamespeed)
+        self.players = players
+        
+        # ugly hardcoded for 2 players for now:
+        self.players[0].init_values(int(display_width*0.25), int(display_height*0.5), 20, fps, gamespeed)
+        self.players[1].init_values(int(display_width*0.75), int(display_height*0.5), 20, fps, gamespeed)
+
         self.ball = Ball(int(display_width*0.5),
                          int(display_height*0.5), 12, fps, gamespeed)
 
         self.memory = [] # game history will be kept here to use for learning
 
     def reset_game(self):
-        width_of_spawn = 0.75
-        self.player.reset(int(display_width*(1-width_of_spawn+np.random.random()*width_of_spawn)), int(display_height*np.random.random()))
+        # width_of_spawn = 0.75
+        # self.player.reset(int(display_width*(1-width_of_spawn+np.random.random()*width_of_spawn)), int(display_height*np.random.random()))
         # self.player.reset(int(display_width*0.75), int(display_height*0.75))
+        self.players[0].reset(int(display_width*0.25), int(display_height*0.5))
+        self.players[1].reset(int(display_width*0.75), int(display_height*0.5))
         self.ball.reset(int(display_width*0.5), int(display_height*0.5))
         self.memory = []
 
@@ -111,6 +117,8 @@ class Game():
         # right
         pygame.draw.line(self.gameDisplay, black, (display_width/2 + map_width/2, display_height /
                                               2 - map_height/2), (display_width/2 + map_width/2, display_height/2 + map_height/2), 1)
+        pygame.draw.line(self.gameDisplay, green, (display_width/2 + map_width/2, display_height/2 -
+                                              goal_height/2), (display_width/2 + map_width/2, display_height/2 + goal_height/2), 1)
         # top
         pygame.draw.line(self.gameDisplay, black, (display_width/2 - map_width/2, display_height /
                                               2 - map_height/2), (display_width/2 + map_width/2, display_height/2 - map_height/2), 1)
@@ -186,14 +194,20 @@ class Game():
                 # if tha ball is fully inside of the goal:
                 if ball.coords[0] <= half_dw - half_mw - ball.radius:
                     ball.in_goal = True
+
             else:
                 ball.coords[0] = half_dw - half_mw + ball.radius
                 ball.velocity[0] *= -1
 
         # right border
         if ball.coords[0] >= half_dw + half_mw - ball.radius:
-            ball.coords[0] = half_dw + half_mw - ball.radius
-            ball.velocity[0] *= -1
+            if ball.coords[1] > half_dh - goal_height/2 and ball.coords[1] < half_dh + goal_height/2:
+                # if tha ball is fully inside of the goal:
+                if ball.coords[0] >= half_dw + half_mw + ball.radius:
+                    ball.in_goal = True
+            else:
+                ball.coords[0] = half_dw + half_mw - ball.radius
+                ball.velocity[0] *= -1
 
         # bottom border
         if ball.coords[1] >= half_dh + half_mh - ball.radius:
@@ -269,7 +283,7 @@ class Game():
 
         return False
 
-    def game_loop(self, TrainNet=None, TargetNet=None, epsilon=None, copy_step=None):
+    def game_loop(self, epsilon=None, copy_step=None):
         gameExit = False
         done = False
         losses = list()
@@ -277,87 +291,68 @@ class Game():
         iter = 0
 
         while not (gameExit or done):
-            if self.human_interaction:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.quit()
-                        quit()
-
-                keys = pygame.key.get_pressed()
-
-                x_change = 0
-                y_change = 0
-
-                if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-                    x_change += -0.7 * gamespeed
-                if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-                    x_change += 0.7 * gamespeed
-                if keys[pygame.K_UP] or keys[pygame.K_w]:
-                    y_change += -0.7 * gamespeed
-                if keys[pygame.K_DOWN] or keys[pygame.K_s]:
-                    y_change += 0.7 * gamespeed
-                if keys[pygame.K_SPACE]:
-                    self.kick(self.player, self.ball)
-
-                vel_change = np.array([x_change, y_change])
-
-            else:
-                observations = self.get_game_state()
-                if iter % 1 == 0:
-                    action = TrainNet.get_action(observations, epsilon)
-                prev_observations = observations
-                vel_change, isKick = self.make_action(action)
+            observations = self.get_game_state()
+            for player in self.players:
+                # removed human interaction
+                if iter % 10 == 0:
+                    player.action = player.Train.get_action(observations, epsilon)
+                vel_change, isKick = self.make_action(player.action)
 
                 # applying physics
                 if(isKick > 0.5):
-                    self.kick(self.player, self.ball)
+                    self.kick(player, self.ball)
 
-            self.player.velocity = self.player.velocity + vel_change
+                player.velocity = player.velocity + vel_change
 
-            self.player.update_velocity()
-            self.player.apply_velocity()
+                player.update_velocity()
+                player.apply_velocity()
+            
+            prev_observations = observations
 
             self.ball.update_velocity()
             self.ball.apply_velocity()
 
-            self.check_collisions(self.player, self.ball)
-            self.check_borders_ball(self.ball)
-            self.check_borders_player(self.player)
-            # done applying physics
+            for player in self.players:
+                self.check_collisions(player, self.ball)
+                self.check_borders_ball(self.ball)
+                self.check_borders_player(player)
+                # done applying physics
 
-            reward = 0.995-self.ball.coords[0]/half_mw
-
-            # if self.is_player_outside(self.player):
-            #     reward = -1
+            self.players[0].reward += self.ball.coords[0]/half_mw-1
+            self.players[1].reward += 1-self.ball.coords[0]/half_mw
 
             if self.ball.in_goal:
                 done = True
-                reward = 1000
+                if self.ball.coords[0] < half_dw:
+                    self.players[0].reward -= 1000
+                    self.players[1].reward += 1000
+                else:
+                    self.players[0].reward += 1000
+                    self.players[1].reward -= 1000
 
             if iter == int(300):
                 done = True
 
-            rewards += reward
+            observations = self.get_game_state()
 
-            if not self.human_interaction:
-                observations = self.get_game_state()
-                exp = {'s': prev_observations, 'a': action, 'r': reward, 's2': observations, 'done': done}
-                TrainNet.add_experience(exp)
-                if iter % 3 == 0:
-                    loss = TrainNet.train(TargetNet)
-                    
+            for player in self.players:
+                exp = {'s': prev_observations, 'a': player.action, 'r': player.reward, 's2': observations, 'done': done}
+                player.Train.add_experience(exp)
+            
+                if iter % 5 == 0:
+                    loss = player.Train.train(player.Target)
+                        
                 if isinstance(loss, int):
-                    losses.append(loss)
+                    player.losses.append(loss)
                 else:
-                    losses.append(loss.numpy())
-                iter += 1
-            else:
-                iter += 1
+                    player.losses.append(loss.numpy())
 
+            iter += 1
 
             self.gameDisplay.fill(green)
             self.draw_map()
-            self.draw_player(self.player)
+            for player in self.players:
+                self.draw_player(player)
             self.draw_ball(self.ball)
 
             pygame.display.update()
@@ -366,8 +361,12 @@ class Game():
             self.clock.tick(fps)
 
         self.reset_game()
-        TargetNet.copy_weights(TrainNet)
-        # losses = [0, 1]
+
+        # for player in self.players:
+        #     player.Target.copy_weights(player.Train)
+
+        # TODO both players shpuld return their losses
+        losses = [0,0] # placeholder
         return rewards, mean(losses)
 
     def make_action(self, action):
@@ -376,7 +375,6 @@ class Game():
 
         return selected_move[0:2], selected_move[2]
         
-
         # x_change = 0
         # y_change = 0
         # kick = 0
@@ -412,6 +410,14 @@ class Game():
         # return np.array([x_change, y_change]), kick
 
     def get_game_state(self):
-        data = np.concatenate(((self.player.coords-normalisation_array), self.player.velocity, (self.ball.coords-normalisation_array), self.ball.velocity))
+        data = np.concatenate(
+            (
+                self.players[0].coords-normalisation_array, 
+                self.players[0].velocity, 
+                self.players[1].coords-normalisation_array, 
+                self.players[1].velocity, 
+                self.ball.coords-normalisation_array, 
+                self.ball.velocity)
+            )
         data.reshape((-1, 1))
         return data

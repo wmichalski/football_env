@@ -1,1 +1,2 @@
 https://arxiv.org/pdf/1705.04862.pdf - EFFICIENT PARALLEL METHODS FOR DEEP REINFORCEMENT LEARNING
+https://arxiv.org/pdf/1905.04100.pdf - Deep Reinforcement Learning using Genetic Algorithm for Parameter Optimization

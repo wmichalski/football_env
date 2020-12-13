@@ -1,7 +1,14 @@
 import numpy as np
 
 class Player:
-    def __init__(self, x, y, radius, fps, gamespeed):
+    def __init__(self, x=None, y=None, radius=None, fps=None, gamespeed=None):
+        self.action = None
+        self.reward = 0
+        self.Target = None
+        self.Train = None
+        self.losses = []
+
+    def init_values(self, x=None, y=None, radius=None, fps=None, gamespeed=None):
         self.coords = np.array([x, y])
         self.radius = radius
         self.kick_radius = radius+10
